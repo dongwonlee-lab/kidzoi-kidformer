@@ -107,7 +107,7 @@ resources/genome/
 
 ---
 
-## Scoring with Fine-tuned KidFormer (Enformer)
+## Scoring with KidFormer
 
 Run:
 
@@ -121,7 +121,7 @@ python ./model/scripts/score_kidformer.py \
 
 ---
 
-## Scoring with Fine-tuned Kidzoi (Borzoi)
+## Scoring with Kidzoi 
 
 Run:
 
