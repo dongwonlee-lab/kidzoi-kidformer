@@ -1,74 +1,116 @@
-#### Get started
-`clone the repository`
+# Getting Started
 
-create a new conda env 
+## 1. Clone the Repository
 
-`conda create --name 'env_name' python=3.9`
+Clone the repository and navigate to the project directory:
 
-`conda activate 'env_name' `
+```bash
+git clone <repository_url>
+cd <repository_name>
+```
 
-`pip install -r requirements.txt`
+## 2. Create a Conda Environment
 
+Create and activate a new Conda environment:
 
-#### prepare training data
+```bash
+conda create --name env_name python=3.9
+conda activate env_name
+```
 
-download data from `GSE262931`
+Install the required dependencies:
 
-To prepare training data for enformer or borzoi finutuning, run the following script:
+```bash
+pip install -r requirements.txt
+```
 
-`sh ./data/process_enformer_training_data.sh`  or
+---
 
-`sh ./data/process_borzoi_training_data.sh`
+# Preparing Training Data
 
+Download the required training data from **GSE262931**.
 
-## options for preparing training data
+After preparing the data, generate the required input files:
 
+- **Target BigWig files** containing the experimental signals.
+- **Reference genome FASTA file**.
+- **BED files** containing the DNA sequences used for training.
 
+---
 
-| Option                     | Description                                  | Default    |
-| -------------------------- | -------------------------------------------- | ---------- |
-| `<fasta_file>`             | Input genome FASTA file                      | -          |
-| `<targets_file>`           | Input targets / coverage file                | -          |
-| `-b`                       | Set blacklist nucleotides to baseline value  | None       |
-| `-c, --crop`               | Crop base pairs from each end                | 0          |
-| `-d`                       | Round values to given decimals               | None       |
-| `-f`                       | Generate cross fold split                    | None       |
-| `-g`                       | Genome assembly gaps BED file                | None       |
-| `-l`                       | Sequence length                              | 196608     |
-| `--limit`                  | Limit to segments overlapping BED file       | None       |
-| `--local`                  | Run jobs locally instead of SLURM            | False      |
-| `-o`                       | Output directory                             | `data_out` |
-| `-p`                       | Number of parallel processes                 | None       |
-| `--peaks`                  | Create contigs only from peaks               | False      |
-| `--restart`                | Continue progress from midpoint              | False      |
-| `-s`                       | Down-sample the segments                     | 1.0        |
-| `--st, --split_test`       | Exit after split                             | False      |
-| `--stride, --stride_train` | Stride to advance train sequences            | 1.0        |
-| `--stride_test`            | Stride to advance valid/test sequences       | 1.0        |
-| `-t`                       | Proportion of data for testing               | 0.05       |
-| `-w`                       | Sum pool width                               | 128        |
-| `-v`                       | Proportion of data for validation            | 0.05       |
+# Training Models
 
+The repository supports training both **KidFormer** (Enformer-based) and **Kidzoi** (Borzoi-based) models.
 
+## KidFormer Training
 
-This will generate the train test and val data
+For KidFormer, use the BED file containing **Enformer sequences**:
 
-To train the model, enformer or borzoi: run the follwoing script
+```bash
+python ./model/utils/train_kidformer.py \
+  --targets_file '/path/to/targets.txt' \
+  --genome '/path/to/genome' \
+  --bed-file '/path/to/enformer/sequences_human_enformer.bed'
+```
 
-` python ./model/utils/train_kidformer.py` or `python ./model/utils/train_kidzoi.py`
+## Kidzoi Training
 
-##### to get the scores from the model
+For Kidzoi, use the BED file containing **Borzoi sequences**:
 
-create a directory ` mkdir -p resources/pretrained`
-and   `mkdir -p resources/genome`
-download the model first from the follwoing link  and save the pretrained models in `resources/pretrained`
-save the genome in resources/genome
+```bash
+python ./model/utils/train_kidzoi.py \
+  --targets_file '/path/to/targets.txt' \
+  --genome '/path/to/genome' \
+  --bed-file '/path/to/borzoi/sequences_human_borzoi.bed'
+```
 
-run the following script to get the scores from enformer finetuned
+## Input Arguments
 
+- `targets_file`  
+  Path to a text file containing the paths to the target **BigWig files** used for training.
+
+- `genome`  
+  Path to the reference genome **FASTA file**.
+
+- `bed_file`  
+  Path to the **BED file** containing the genomic sequences used for model training.
+
+## Sequence Requirements
+
+- **KidFormer** requires BED files containing **Enformer sequences**.
+- **Kidzoi** requires BED files containing **Borzoi sequences**.
+
+---
+
+# Obtaining Variant Effect Scores
+
+To obtain variant effect scores from the fine-tuned models, first create the required directories:
+
+```bash
+mkdir -p resources/pretrained
+mkdir -p resources/genome
+```
+
+Download the pretrained model weights and place them in:
 
 ```
-python ./model/utils/score_enformer_ft.py \                                
+resources/pretrained/
+```
+
+Place the reference genome FASTA file in:
+
+```
+resources/genome/
+```
+
+---
+
+## Scoring with Fine-tuned KidFormer (Enformer)
+
+Run:
+
+```bash
+python ./model/utils/score_enformer_ft.py \
   --vcf_file ./test.vcf \
   --output_dir ./out \
   --target_length 16 \
@@ -76,10 +118,14 @@ python ./model/utils/score_enformer_ft.py \
   --shifts="-1,0,1"
 ```
 
-run the following script to get the scores from borzoi finetuned
+---
 
-```
-python ./model/utils/score_borzoi_ft.py \                                
+## Scoring with Fine-tuned Kidzoi (Borzoi)
+
+Run:
+
+```bash
+python ./model/utils/score_borzoi_ft.py \
   --vcf_file ./test.vcf \
   --output_dir ./out \
   --target_length 16 \
@@ -87,5 +133,15 @@ python ./model/utils/score_borzoi_ft.py \
   --shifts="-1,0,1"
 ```
 
-`target_length` is the number of bins to compute score from
+## Scoring Parameters
 
+- `target_length`  
+  Number of output bins used to compute the variant effect score.
+
+- `sad_stats`  
+  Specifies the statistics to compute:
+  - `SAD`: Sum of Absolute Differences.
+  - `logSAD`: Log-transformed Sum of Absolute Differences.
+
+- `shifts`  
+  Specifies sequence shifts used during prediction to improve robustness.
