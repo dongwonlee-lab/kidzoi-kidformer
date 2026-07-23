@@ -5,8 +5,8 @@
 Clone the repository and navigate to the project directory:
 
 ```bash
-git clone <repository_url>
-cd <repository_name>
+git clone https://github.com/dongwonlee-lab/kidzoi-kidformer.git
+cd kidzoi-kidformer
 ```
 
 ## 2. Create a Conda Environment
@@ -14,8 +14,8 @@ cd <repository_name>
 Create and activate a new Conda environment:
 
 ```bash
-conda create --name env_name python=3.9
-conda activate env_name
+conda create --name `env_name` python=3.9
+conda activate `env_name`
 ```
 
 Install the required dependencies:
@@ -67,13 +67,13 @@ python ./model/utils/train_kidzoi.py \
 ## Input Arguments
 
 - `targets_file`  
-  Path to a text file containing the paths to the target **BigWig files** used for training.
+  Path to a text file containing the paths to the target **BigWig files** used for training. see `resources/targets_sum.txt`
 
 - `genome`  
   Path to the reference genome **FASTA file**.
 
 - `bed_file`  
-  Path to the **BED file** containing the genomic sequences used for model training.
+  Path to the **BED file** containing the genomic sequences used for model training. see `resources/sequences_human_enformer.bed`
 
 ## Sequence Requirements
 
@@ -84,14 +84,16 @@ python ./model/utils/train_kidzoi.py \
 
 # Obtaining Variant Effect Scores
 
-To obtain variant effect scores from the fine-tuned models, first create the required directories:
+To directly obtain the `variant-effect` scores from the models directly, you can skip the training step and use the pretrained models directly. 
+
+To obtain variant effect scores from the  models, first create the required directories:
 
 ```bash
 mkdir -p resources/pretrained
 mkdir -p resources/genome
 ```
 
-Download the pretrained model weights and place them in:
+Download the pretrained model weights from https://zenodo.org/records/19501317?preview=1&token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6ImFlZTA4Nzg4LTVhNDMtNDM5Ny1hMjE1LTFmNWE1MGQ4ZTM0MiIsImRhdGEiOnt9LCJyYW5kb20iOiJkOGFkMThmMDRmYzQ2ZmVhMmUwODQ3MGI0ZWE4MzZlZCJ9.SY1a_fB7Kn8uKNU2bDCeiW0JS-ENpjeRiwgxDp3TnsxTFHENMB2DRuoqsWETxl72U4QEFF7kRzqF0T-y2HritA and place them in:
 
 ```
 resources/pretrained/
@@ -110,12 +112,11 @@ resources/genome/
 Run:
 
 ```bash
-python ./model/utils/score_enformer_ft.py \
+python ./model/scripts/score_kidformer.py \
   --vcf_file ./test.vcf \
-  --output_dir ./out \
-  --target_length 16 \
-  --sad_stats SAD,logSAD \
-  --shifts="-1,0,1"
+  --output_dir ./testing_kidformer \
+  --target_length 8 \
+  --sad_stats SAD \
 ```
 
 ---
@@ -125,12 +126,11 @@ python ./model/utils/score_enformer_ft.py \
 Run:
 
 ```bash
-python ./model/utils/score_borzoi_ft.py \
+python ./model/scripts/score_kidzoi.py \
   --vcf_file ./test.vcf \
-  --output_dir ./out \
-  --target_length 16 \
-  --sad_stats SAD,logSAD \
-  --shifts="-1,0,1"
+  --output_dir ./testing_kidzoi \
+  --target_length 32 \
+  --sad_stats SAD \
 ```
 
 ## Scoring Parameters
@@ -140,8 +140,7 @@ python ./model/utils/score_borzoi_ft.py \
 
 - `sad_stats`  
   Specifies the statistics to compute:
-  - `SAD`: Sum of Absolute Differences.
-  - `logSAD`: Log-transformed Sum of Absolute Differences.
+  - `SAD`: difference between the `alt` and `ref`.
 
-- `shifts`  
-  Specifies sequence shifts used during prediction to improve robustness.
+
+#### See `test_model_score.ipynb` for sample output from  `Kidzoi` and `Kidformer`
