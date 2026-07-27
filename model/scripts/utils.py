@@ -1,3 +1,6 @@
+# some of the code here is adapted from Basenji repository  https://github.com/calico/basenji
+
+
 import numpy as np
 import sys
 import h5py
@@ -10,15 +13,7 @@ import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 
-
-
-
-
 NUC2IDX = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
-
-
-
-
 
 def get_lr(it, warmup_steps, max_steps):
     # 1) Linear warmup for warmup_steps
@@ -74,29 +69,13 @@ def configure_optimizers(model, weight_decay, learning_rate, device):
     return optimizer
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 class BorzoiFineTune(nn.Module):
     """Simple wrapper to finetune Borzoi on new tracks"""
     def __init__(self, pretrained_model, num_new_tracks=10):
         super().__init__()
         self.borzoi = pretrained_model
-        
         del self.borzoi.human_head
-        
         del self.borzoi.final_softplus
-            
-        
         self.new_head = nn.Conv1d(1920, num_new_tracks, kernel_size=1)
         self.final_activation = nn.Softplus() 
         
@@ -119,14 +98,10 @@ class BorzoiFineTune(nn.Module):
         x = self.borzoi.separable0(x)
         x = self.borzoi.crop(x.permute(0, 2, 1))
         x = self.borzoi.final_joined_convs(x.permute(0, 2, 1))
-        
         # Apply new head
         x = self.new_head(x)
         x = self.final_activation(x)  
         return x
-
-
-
 
 
 class GenomicDataset(Dataset):
