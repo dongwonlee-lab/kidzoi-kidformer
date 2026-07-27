@@ -33,9 +33,6 @@ if str(MODEL_DIR) not in sys.path:
     sys.path.append(str(MODEL_DIR))
 
 
-
-
-
 def main():
     script_dir = Path(__file__).resolve().parent
     model_dir = script_dir.parent
