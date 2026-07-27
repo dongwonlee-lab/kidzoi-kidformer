@@ -37,50 +37,6 @@ np.random.seed(seed)
 random.seed(seed)
 
 
-
-class BorzoiFineTune(nn.Module):
-  
-    def __init__(self, pretrained_model, num_new_tracks=10):
-        super().__init__()
-        self.borzoi = pretrained_model
-        
-        dropout_modules = [module for module in self.modules() if isinstance(module, torch.nn.Dropout)]
-        batchnorm_modules = [module for module in self.modules() if isinstance(module, torch.nn.BatchNorm1d)]
-        [module.eval() for module in dropout_modules] # disable dropout
-        [module.eval() for module in batchnorm_modules] # disable batchnorm
-        
-        del self.borzoi.human_head
-        del self.borzoi.final_softplus    
-        self.new_head = nn.Conv1d(1920, num_new_tracks, kernel_size=1)
-        self.final_activation = nn.Softplus()  
-
-    
-    def forward(self, sequence):
-        
-        x = self.borzoi.conv_dna(sequence)
-        x_unet0 = self.borzoi.res_tower(x)
-        x_unet1 = self.borzoi.unet1(x_unet0)
-        x = self.borzoi._max_pool(x_unet1)
-        x_unet1 = self.borzoi.horizontal_conv1(x_unet1)
-        x_unet0 = self.borzoi.horizontal_conv0(x_unet0)
-        x = self.borzoi.transformer(x.permute(0, 2, 1))
-        x = x.permute(0, 2, 1)
-        x = self.borzoi.upsampling_unet1(x)
-        x += x_unet1
-        x = self.borzoi.separable1(x)
-        x = self.borzoi.upsampling_unet0(x)
-        x += x_unet0
-        x = self.borzoi.separable0(x)
-        x = self.borzoi.crop(x.permute(0, 2, 1))
-        x = self.borzoi.final_joined_convs(x.permute(0, 2, 1))
-        x = self.new_head(x)
-        x = self.final_activation(x)  
-        
-        return x
-
-
-
-
 def load_finetuned_model(checkpoint_path, num_new_tracks=10, return_center_bins_only=False,bins_to_return=6144, device='mps'):
    
     pretrained = Borzoi.from_pretrained("johahi/borzoi-replicate-0",return_center_bins_only = True, bins_to_return = bins_to_return)
