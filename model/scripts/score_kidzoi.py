@@ -95,7 +95,6 @@ def load_finetuned_model(checkpoint_path, num_new_tracks=10, return_center_bins_
         else:
             new_state_dict[key] = value
     
-  
     model.load_state_dict(new_state_dict)
     model = model.to(device)
     model.eval()
@@ -131,14 +130,12 @@ def main():
 )
 
     targets_file = pd.read_csv(args.targets_file, sep='\t')
-    
     snps = vcf_snps(args.vcf_file)
     sad_out = initialize_output_h5(args.output_dir, args.sad_stats, snps, 
                                     int(args.target_length), targets_file, args.vcf_file)
 
     genome_dict = SeqIO.to_dict(SeqIO.parse(args.genome, "fasta"))
     seq_len = args.seq_len
-    
     print(f'using sequence length {seq_len}')
     dataset = VCFDataset(args.vcf_file, genome_dict, args.seq_len)
     pos_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
@@ -164,8 +161,6 @@ def main():
                 
                 sample_ref_preds.append(ref_pred)
                 sample_alt_preds.append(alt_pred)
-            
-                
        
         avg_ref_pred = torch.mean(torch.stack(sample_ref_preds), dim=0).squeeze()
         avg_alt_pred = torch.mean(torch.stack(sample_alt_preds), dim=0).squeeze()
