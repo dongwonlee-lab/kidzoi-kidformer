@@ -39,19 +39,15 @@ def main():
     parser.add_argument('--targets_file', default="/path/to/targets_file.txt", help='path to train data')
     parser.add_argument('--genome', default="/path/to/genome.fa", help='Genome FASTA')
     parser.add_argument('--bed_file', default="path/to/sequences_human_enformer.bed", help='Targets file')
-    
     args = parser.parse_args()
     device = "cuda"
     
     print(f'Using device: {device}')
     args = parser.parse_args()
-
-    print(f'Using device: {device}')
     genome = args.genome
     sequences = args.bed_file
     targets_file = args.targets_file
     model_name = "kidformer"
-
     print("Loading training data...")
 
      # Create data loaders
@@ -74,11 +70,9 @@ def main():
     # Training loop
     
     max_steps = ((len(train_loader))// accumulation_steps) * num_epochs
-
     total_steps = len(train_loader) // accumulation_steps * num_epochs
-    
-    print(f"Starting training for {num_epochs} epochs...")
-   
+
+       
     print("Loading pretrained Enformer model...")
     num_tracks=10
    
@@ -96,10 +90,9 @@ def main():
     model.train()
     model = torch.compile(model)
     wandb.init(project=model_name)
-
     loss_accum = 0.0
     optimizer = configure_optimizers(model, weight_decay=0.1, learning_rate=max_lr, device=device)
-    
+    print(f"Starting training for {num_epochs} epochs...")
     step = 0 
     stepi = []
     lossi = []
