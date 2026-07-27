@@ -37,7 +37,7 @@ np.random.seed(seed)
 random.seed(seed)
 
 
-def load_finetuned_model(checkpoint_path, num_new_tracks=10, return_center_bins_only=False,bins_to_return=6144, device='mps'):
+def load_finetuned_model(checkpoint_path, num_new_tracks=10, return_center_bins_only=False,bins_to_return=6144, device='cuda'):
    
     pretrained = Borzoi.from_pretrained("johahi/borzoi-replicate-0",return_center_bins_only = True, bins_to_return = bins_to_return)
     model = BorzoiFineTune(pretrained, num_new_tracks=num_new_tracks)
