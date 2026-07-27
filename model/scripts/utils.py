@@ -69,6 +69,7 @@ def configure_optimizers(model, weight_decay, learning_rate, device):
     return optimizer
 
 
+
 class BorzoiFineTune(nn.Module):
     """Simple wrapper to finetune Borzoi on new tracks"""
     def __init__(self, pretrained_model, num_new_tracks=10):
@@ -98,7 +99,6 @@ class BorzoiFineTune(nn.Module):
         x = self.borzoi.separable0(x)
         x = self.borzoi.crop(x.permute(0, 2, 1))
         x = self.borzoi.final_joined_convs(x.permute(0, 2, 1))
-        # Apply new head
         x = self.new_head(x)
         x = self.final_activation(x)  
         return x
