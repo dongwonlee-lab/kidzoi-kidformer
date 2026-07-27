@@ -102,6 +102,7 @@ def main():
     step = 0 
     stepi = []
     lossi = []
+    best_val_loss = float('inf')
     for epoch in range(num_epochs):
         model.train()
         epoch_losses = []  # Store loss per optimization step, not per batch
@@ -199,6 +200,23 @@ def main():
         print(f"  Validation Loss: {avg_val_loss:.4f}")
         print(f"  Steps completed: {step}")
         print("-" * 50)
+        
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+        
+        # Save both the model weights AND useful metadata
+            checkpoint = {
+                'epoch': epoch + 1,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'best_val_loss': best_val_loss,
+                'step': step,
+            }
+            torch.save(checkpoint, f"{model_name}_best.pth")
+            print(f"  New best model saved! Val loss: {best_val_loss:.4f}")
+        else:
+            print(f"  (No improvement. Best val loss so far: {best_val_loss:.4f})")
+    
     
     print("Saving fine-tuned model...")
     torch.save(model.state_dict(), f"{model_name}.pth")
