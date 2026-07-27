@@ -5,7 +5,6 @@ from pathlib import Path
 import random
 import numpy as np
 import pandas as pd
-
 from Bio import SeqIO
 import h5py
 import torch
@@ -13,9 +12,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, Subset
-
 from tqdm import tqdm
-
 from utils import *
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -32,13 +29,10 @@ from borzoi_pytorch import Borzoi
 torch.set_float32_matmul_precision('high')
 
 
-
 seed = 42
-
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
-
 np.random.seed(seed)
 random.seed(seed)
 
@@ -50,24 +44,19 @@ class BorzoiFineTune(nn.Module):
         super().__init__()
         self.borzoi = pretrained_model
         
-       
         dropout_modules = [module for module in self.modules() if isinstance(module, torch.nn.Dropout)]
         batchnorm_modules = [module for module in self.modules() if isinstance(module, torch.nn.BatchNorm1d)]
         [module.eval() for module in dropout_modules] # disable dropout
         [module.eval() for module in batchnorm_modules] # disable batchnorm
         
         del self.borzoi.human_head
-        
-        del self.borzoi.final_softplus
-            
-        
+        del self.borzoi.final_softplus    
         self.new_head = nn.Conv1d(1920, num_new_tracks, kernel_size=1)
         self.final_activation = nn.Softplus()  
 
     
     def forward(self, sequence):
         
-      
         x = self.borzoi.conv_dna(sequence)
         x_unet0 = self.borzoi.res_tower(x)
         x_unet1 = self.borzoi.unet1(x_unet0)
@@ -84,10 +73,9 @@ class BorzoiFineTune(nn.Module):
         x = self.borzoi.separable0(x)
         x = self.borzoi.crop(x.permute(0, 2, 1))
         x = self.borzoi.final_joined_convs(x.permute(0, 2, 1))
-        
-
         x = self.new_head(x)
         x = self.final_activation(x)  
+        
         return x
 
 
@@ -99,7 +87,6 @@ def load_finetuned_model(checkpoint_path, num_new_tracks=10, return_center_bins_
     model = BorzoiFineTune(pretrained, num_new_tracks=num_new_tracks)
      
     state_dict = torch.load(checkpoint_path,map_location=torch.device('cpu'))
-    
     new_state_dict = {}
     for key, value in state_dict.items():
         if key.startswith('_orig_mod.'):
@@ -110,7 +97,6 @@ def load_finetuned_model(checkpoint_path, num_new_tracks=10, return_center_bins_
     
   
     model.load_state_dict(new_state_dict)
-   
     model = model.to(device)
     model.eval()
     
@@ -138,14 +124,12 @@ def main():
     print(f"Using shifts: {args.shifts}")
     print(f"Using stats: {args.sad_stats}")
 
-    device = 'mps'
-    
+    device = 'cuda'
     model = load_finetuned_model(
     checkpoint_path=args.checkpoint,
     num_new_tracks=10,return_center_bins_only=True, bins_to_return=args.target_length
 )
 
-    
     targets_file = pd.read_csv(args.targets_file, sep='\t')
     
     snps = vcf_snps(args.vcf_file)
@@ -176,14 +160,12 @@ def main():
                 alt_pred_f = model(alt_onehot.permute(0,2,1)).detach().permute(0,2,1).cpu()
                 alt_pred_r = model(rev_comp(alt_onehot).permute(0,2,1)).detach().permute(0,2,1).cpu()
                 alt_pred = (alt_pred_f + alt_pred_r) / 2
-                
                 alt_pred = (alt_pred_f + alt_pred_r) / 2
                 
                 sample_ref_preds.append(ref_pred)
                 sample_alt_preds.append(alt_pred)
-                #import code; code.interact(local=dict(globals(), **locals()))
+            
                 
-    
        
         avg_ref_pred = torch.mean(torch.stack(sample_ref_preds), dim=0).squeeze()
         avg_alt_pred = torch.mean(torch.stack(sample_alt_preds), dim=0).squeeze()
