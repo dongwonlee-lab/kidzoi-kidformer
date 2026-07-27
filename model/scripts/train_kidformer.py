@@ -71,7 +71,6 @@ def main():
     
     max_steps = ((len(train_loader))// accumulation_steps) * num_epochs
     total_steps = len(train_loader) // accumulation_steps * num_epochs
-
        
     print("Loading pretrained Enformer model...")
     num_tracks=10
@@ -103,7 +102,6 @@ def main():
         
         # Training
         for batch_idx, batch in enumerate(tqdm(train_loader)):
-    
             
             # Zero gradients at start of accumulation step
             if batch_idx % accumulation_steps == 0:
@@ -112,19 +110,15 @@ def main():
             
             seq = batch[0].permute(0,2,1).to(device)
             target = batch[1].to(device)
-            
-            
+             
             with torch.autocast(device_type=device, dtype=torch.bfloat16):
                 # Forward pass
                 loss = model(seq, target=target)
-            
+
             # Scale loss for gradient accumulation 
             loss = loss / accumulation_steps
-            
-            
             loss_accum += loss.detach()
             #print(loss_accum)      
-            
             # Backward pass
             loss.backward()
             
@@ -143,11 +137,7 @@ def main():
                 
                 # Store loss for this optimization step (unscaled)
                 epoch_losses.append(loss_accum.item())
-                
-                
                 print(f"Step {step}, Loss: {loss_accum.item():.4f}, LR: {lr:.4e}, Norm: {norm:.4f}")
-                
-                
                 step += 1  # Increment global step counter
                 stepi.append(step)
                 lossi.append(loss_accum.item())
@@ -155,8 +145,6 @@ def main():
                
                 wandb.log({"train_loss": loss_accum.item(), "norm": norm, "lr": lr}, step=step)
                 
-    
-        
         #Handle remaining gradients at end of epoch
         if len(train_loader) % accumulation_steps != 0:
             # Gradient clipping
@@ -214,10 +202,9 @@ def main():
                 'step': step,
             }
             torch.save(checkpoint, f"{model_name}_best.pth")
-            print(f"  ✓ New best model saved! Val loss: {best_val_loss:.4f}")
+            print(f"  New best model saved! Val loss: {best_val_loss:.4f}")
         else:
             print(f"  (No improvement. Best val loss so far: {best_val_loss:.4f})")
-    
     
     print("Saving fine-tuned model...")
     torch.save(model.state_dict(), f"{model_name}.pth")
