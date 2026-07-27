@@ -51,13 +51,9 @@ def main():
 
     args.shifts = [int(x) for x in args.shifts.split(',') if x.strip()]
     args.sad_stats = [x.strip() for x in args.sad_stats.split(',') if x.strip()]
-
-
-    
     print(f"Using shifts: {args.shifts}")
 
-    device = 'mps'
-    
+    device = 'cuda'
     pretrained = from_pretrained('EleutherAI/enformer-official-rough', target_length=args.target_length)
     model = HeadAdapterWrapper(enformer=pretrained, num_tracks=10, post_transformer_embed=False).to(device)
     
