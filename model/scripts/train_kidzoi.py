@@ -29,16 +29,12 @@ torch.manual_seed(seed)           # for CPU
 torch.cuda.manual_seed(seed)      # for current GPU
 torch.cuda.manual_seed_all(seed)
 
-
 torch.set_float32_matmul_precision('high')
 
 num_epochs = 4
 max_lr = 3e-3
 min_lr = max_lr * 0.1
 warmup_steps = 1000
-
-
-
 
 
 
@@ -52,13 +48,10 @@ def main():
     args = parser.parse_args()
     device = "cuda"
     print(f'Using device: {device}')
+    print(f'Using device: {device}')
     genome = args.genome
     sequences = args.bed_file
     targets_file = args.targets_file
-
-      
-    device = "cuda"
-    batch_size=1
     
     genome = args.genome
     sequences = args.bed_file
@@ -67,7 +60,7 @@ def main():
     
    
      # Create data loaders
-
+    batch_size=1
     print("Loading training data...")
     train_loader = make_loader(sequences, targets_file, genome,
                       split='train', seq_len=524288, target_len=196608, bin_size = 32,
@@ -78,11 +71,8 @@ def main():
                       batch_size=batch_size, num_workers=batch_size, shuffle=False, rc_aug=False, shift_aug=False)   
    
 
-    
-
     print(f"Total training batches: {len(train_loader)} with batch size {batch_size}")
-    print(f'Using device: {device}')
-
+    
 
     # Gradient accumulation settings
     desired_batch_size = 64
@@ -90,7 +80,6 @@ def main():
     print(f"Using gradient accumulation with {accumulation_steps} steps (effective batch size: {desired_batch_size})")
     
     # Training loop
-    
     max_steps = ((len(train_loader))// accumulation_steps) * num_epochs
     total_steps = len(train_loader) // accumulation_steps * num_epochs
     
@@ -105,15 +94,7 @@ def main():
     model = model.to(device)
     model.train()
     model = torch.compile(model)
-
-    #wandb.init(project=model_name)
-    wandb.init(
-    project=f"Borzoi_with_origseq",
-    name=f"rep3",
-    tags=[f"rep3"]
-    )
-    
-    
+    wandb.init(project=model_name)
     
     loss_accum = 0.0
     optimizer = configure_optimizers(model, weight_decay=0.1, learning_rate=max_lr, device=device)
@@ -127,8 +108,7 @@ def main():
         
         # Training
         for batch_idx, batch in enumerate(tqdm(train_loader)):
-    
-            
+
             # Zero gradients at start of accumulation step
             if batch_idx % accumulation_steps == 0:
                 optimizer.zero_grad()
@@ -137,8 +117,6 @@ def main():
             seq = batch[0].to(device)
             target = batch[1].to(device)
             
-            
-            
             with torch.autocast(device_type=device, dtype=torch.bfloat16):
                 # Forward pass
                  pred = model(seq)
@@ -146,8 +124,6 @@ def main():
             
             # Scale loss for gradient accumulation 
             loss = loss / accumulation_steps
-            
-            
             loss_accum += loss.detach()
             #print(loss_accum)      
             
@@ -172,8 +148,6 @@ def main():
                 
                 # Print progress every accumulation step
                 print(f"Step {step}, Loss: {loss_accum.item():.4f}, LR: {lr:.4e}, Norm: {norm:.4f}")
-                
-                
                 step += 1  # Increment global step counter
                 stepi.append(step)
                 lossi.append(loss_accum.item())
@@ -181,20 +155,16 @@ def main():
                
                 wandb.log({"train_loss": loss_accum.item(), "norm": norm, "lr": lr}, step=step)
                 
-    
-        
         #Handle remaining gradients at end of epoch
         if len(train_loader) % accumulation_steps != 0:
             # Gradient clipping
             norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            
             # Update learning rate
             lr =get_lr(step, warmup_steps, max_steps)
             for param_group in optimizer.param_groups:
                 param_group['lr'] = lr
             
             optimizer.step()
-            
             # Add the final partial step loss
             epoch_losses.append(loss_accum.item())
             step += 1
@@ -213,8 +183,6 @@ def main():
                     
                     loss = poisson_loss(pred.permute(0,2,1), target)
                 val_losses.append(loss.item())
-        
-                    
                     
         avg_train_loss = np.mean(epoch_losses)
         avg_val_loss = np.mean(val_losses)
@@ -234,7 +202,6 @@ def main():
     
     print("Saving fine-tuned model...")
     torch.save(model.state_dict(), f"{model_name}.pth")
-    
         
 
 if __name__ == "__main__":
