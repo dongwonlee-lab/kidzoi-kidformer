@@ -53,7 +53,7 @@ def main():
     args.sad_stats = [x.strip() for x in args.sad_stats.split(',') if x.strip()]
     print(f"Using shifts: {args.shifts}")
 
-    device = 'cuda'
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     pretrained = from_pretrained('EleutherAI/enformer-official-rough', target_length=args.target_length)
     model = HeadAdapterWrapper(enformer=pretrained, num_tracks=10, post_transformer_embed=False).to(device)
     
