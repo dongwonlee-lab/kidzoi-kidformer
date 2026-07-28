@@ -37,13 +37,23 @@ np.random.seed(seed)
 random.seed(seed)
 
 
-def load_finetuned_model(checkpoint_path, num_new_tracks=10, return_center_bins_only=False,bins_to_return=6144, device='cuda'):
+def load_finetuned_model(checkpoint_path, num_new_tracks=10, return_center_bins_only=False,bins_to_return=6144, device=None):
+
+    if device is None:
+        device = (
+            "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu"
+        )
    
     pretrained = Borzoi.from_pretrained("johahi/borzoi-replicate-0",return_center_bins_only = True, bins_to_return = bins_to_return)
     model = BorzoiFineTune(pretrained, num_new_tracks=num_new_tracks)
      
-    state_dict = torch.load(checkpoint_path,map_location=torch.device('cpu'))
+    state_dict = torch.load(checkpoint_path,map_location=device)
     new_state_dict = {}
+    
     for key, value in state_dict.items():
         if key.startswith('_orig_mod.'):
             new_key = key.replace('_orig_mod.', '')
@@ -79,7 +89,7 @@ def main():
     print(f"Using shifts: {args.shifts}")
     print(f"Using stats: {args.sad_stats}")
 
-    device = 'cuda'
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     model = load_finetuned_model(
     checkpoint_path=args.checkpoint,
     num_new_tracks=10,return_center_bins_only=True, bins_to_return=args.target_length
