@@ -25,8 +25,8 @@ import wandb
 seed = 42 
 random.seed(seed)
 np.random.seed(seed)
-torch.manual_seed(seed)           # for CPU
-torch.cuda.manual_seed(seed)      # for current GPU
+torch.manual_seed(seed)           
+torch.cuda.manual_seed(seed)      
 torch.cuda.manual_seed_all(seed)
 
 torch.set_float32_matmul_precision('high')
@@ -37,7 +37,6 @@ min_lr = max_lr * 0.1
 warmup_steps = 1000
 
 
-
 def main():
 
     parser = argparse.ArgumentParser()
@@ -46,7 +45,7 @@ def main():
     parser.add_argument('--bed_file', default="path/to/sequences_human_borzoi.bed", help='Targets file')
 
     args = parser.parse_args()
-    device = "cuda"
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     print(f'Using device: {device}')
     print(f'Using device: {device}')
     genome = args.genome
@@ -86,7 +85,7 @@ def main():
     print(f"Starting training for {num_epochs} epochs...")
    
     print("Loading pretrained Borzoi model...")
-    pretrained = Borzoi.from_pretrained("johahi/borzoi-replicate-3")
+    pretrained = Borzoi.from_pretrained("johahi/borzoi-replicate-0")
     
     num_new_tracks = 10
     model = BorzoiFineTune(pretrained, num_new_tracks)
