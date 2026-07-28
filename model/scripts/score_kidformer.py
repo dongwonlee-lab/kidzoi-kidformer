@@ -10,9 +10,9 @@ from tqdm import tqdm
 from utils import *
 from enformer_pytorch import from_pretrained
 from enformer_pytorch.finetune import HeadAdapterWrapper
-
-
 import random
+
+
 seed = 42
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
