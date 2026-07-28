@@ -40,7 +40,7 @@ def main():
     parser.add_argument('--genome', default="/path/to/genome.fa", help='Genome FASTA')
     parser.add_argument('--bed_file', default="path/to/sequences_human_enformer.bed", help='Targets file')
     args = parser.parse_args()
-    device = "cuda"
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     
     print(f'Using device: {device}')
     args = parser.parse_args()
