@@ -54,16 +54,16 @@ def configure_optimizers(model, weight_decay, learning_rate, device):
     print(f"num non-decayed parameter tensors: {len(nodecay_params)}, with {num_nodecay_params:,} parameters")
 
     
-    #fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
-    #use_fused = fused_available and 'cuda' in device
-    #print(f"using fused AdamW: {use_fused}")
+    fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
+    use_fused = fused_available and 'cuda' in device
+    print(f"using fused AdamW: {use_fused}")
 
     optimizer = torch.optim.AdamW(
         optim_groups,
         lr=learning_rate,
         betas=(0.9, 0.999),
         eps=1e-8,
-        #fused=use_fused if fused_available else False
+        fused=use_fused if fused_available else False
     )
 
     return optimizer
