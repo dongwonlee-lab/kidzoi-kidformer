@@ -1,11 +1,3 @@
-from sklearn.metrics import roc_curve, precision_recall_curve, auc
-import numpy as np
-
-
-
-
-
-#utility functions
 
 def compute_cell_specific_correlations(
     target_dir,
@@ -59,10 +51,6 @@ def compute_cell_specific_correlations(
                 print(f"{bed_cell} | cell_{cell_id}: r = {corr:.3f}")
 
     return corrs_df
-
-
-
-
 
 
 def compute_cellwise_correlations_ubiquitous(
@@ -119,15 +107,6 @@ def compute_cellwise_correlations_ubiquitous(
 
     return corrs_df
 
-
-
-
-
-
-
-
-import numpy as np
-from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_precision_score
 
 def sliding_sad_metrics(
     pos_sad,
@@ -241,10 +220,10 @@ def sliding_sad_metrics(
     return results
 
 
-
 def clip_float(x, dtype=np.float16):
     return np.clip(x, np.finfo(dtype).min, np.finfo(dtype).max)
 
+    
 def compute_sad_metrics(
     all_scores_pos,
     all_scores_neg,
@@ -317,16 +296,6 @@ def compute_sad_metrics(
     return results
 
 
-
-
-
-
-
-
-
-
-
-
 def compute_and_plot_metrics(sad_caai, imb_labels, targets, save_path=None):
     
     target_idx = np.array(targets['index'])
@@ -369,19 +338,6 @@ def compute_and_plot_metrics(sad_caai, imb_labels, targets, save_path=None):
         metrics_df.to_csv(save_path, sep='\t', index=False)
 
     return metrics_df
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def compute_caai(pos_sad, neg_sad, model):
