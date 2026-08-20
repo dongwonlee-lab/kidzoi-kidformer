@@ -3,8 +3,7 @@ def compute_cell_specific_correlations(
     target_dir,
     pred_dir,
     cells_bed,
-    cells_pred,
-    
+    cells_pred, 
     n_cell_ids=10,
     value_threshold=1,
     pred_slice=(447, 449),
@@ -426,8 +425,7 @@ def compute_caai(pos_sad, neg_sad, model):
         ])
 
     else:
-            
-       
+        
         pos_ref = pos_sad['REF'][:, index1:index2, :].mean(axis=1)
         pos_alt = pos_sad['ALT'][:, index1:index2, :].mean(axis=1)
         pos_denom = pos_ref + pos_alt
