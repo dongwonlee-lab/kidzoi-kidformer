@@ -107,7 +107,7 @@ resources/genome/
 
 ---
 
-## Scoring with KidFormer
+## Scoring with Kidformer
 
 Run:
 
