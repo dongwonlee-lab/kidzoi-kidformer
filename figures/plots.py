@@ -1,3 +1,14 @@
+import pandas as pd
+import numpy as np
+import torch
+import warnings
+
+from scipy.stats import pearsonr
+from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_precision_score
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 def compute_cell_specific_correlations(
     target_dir,
