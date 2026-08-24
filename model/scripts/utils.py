@@ -1,6 +1,5 @@
 # some of the code here is adapted from Basenji repository  https://github.com/calico/basenji
 
-
 import numpy as np
 import sys
 import h5py
