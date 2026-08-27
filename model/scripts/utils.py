@@ -68,7 +68,6 @@ def configure_optimizers(model, weight_decay, learning_rate, device):
     return optimizer
 
 
-
 class BorzoiFineTune(nn.Module):
     """Simple wrapper to finetune Borzoi on new tracks"""
     def __init__(self, pretrained_model, num_new_tracks=10):
@@ -365,12 +364,6 @@ class SNP:
             self.ref_allele,
             ",".join(self.alt_alleles),
         )
-
-
-
-
-
-
 
 
 
