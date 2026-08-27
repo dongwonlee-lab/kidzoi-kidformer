@@ -117,12 +117,13 @@ def main():
                 alt_onehot = torch.tensor(dataset.sequence_to_onehot(alt_sequences[0])).unsqueeze(0).to(device)
    
                 ref_pred_f = model(ref_onehot.permute(0,2,1)).detach().permute(0,2,1).cpu()
-                ref_pred_r = model(rev_comp(ref_onehot).permute(0,2,1)).detach().permute(0,2,1).cpu()
+                ref_pred_r = model(rev_comp(ref_onehot).permute(0,2,1)).detach().permute(0,2,1)
+                ref_pred_r = torch.flip(ref_pred_r, dims=[-1]).cpu()
                 ref_pred = (ref_pred_f + ref_pred_r) / 2
                 
                 alt_pred_f = model(alt_onehot.permute(0,2,1)).detach().permute(0,2,1).cpu()
-                alt_pred_r = model(rev_comp(alt_onehot).permute(0,2,1)).detach().permute(0,2,1).cpu()
-                alt_pred = (alt_pred_f + alt_pred_r) / 2
+                alt_pred_r = model(rev_comp(alt_onehot).permute(0,2,1)).detach().permute(0,2,1)
+                alt_pred_r = torch.flip(alt_pred_r, dims=[-1]).cpu()
                 alt_pred = (alt_pred_f + alt_pred_r) / 2
                 
                 sample_ref_preds.append(ref_pred)
