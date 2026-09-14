@@ -20,7 +20,7 @@ MODEL_DIR = SCRIPT_DIR.parent
 PROJECT_ROOT = SCRIPT_DIR.parents[1]
 RESOURCES_DIR = PROJECT_ROOT / "resources"
 GENOME_PATH = RESOURCES_DIR / "genome" / "hg38.ml.fa"
-CHECKPOINT_PATH = RESOURCES_DIR / "pretrained" / "kidzoi.pth"
+CHECKPOINT_PATH = RESOURCES_DIR / "pretrained" / "kidzoi_rep0.pth"
 if str(MODEL_DIR) not in sys.path:
     sys.path.append(str(MODEL_DIR))
 
