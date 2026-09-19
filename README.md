@@ -93,7 +93,7 @@ mkdir -p resources/pretrained
 mkdir -p resources/genome
 ```
 
-Download the pretrained model weights from https://zenodo.org/records/19501317?preview=1&token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6ImFlZTA4Nzg4LTVhNDMtNDM5Ny1hMjE1LTFmNWE1MGQ4ZTM0MiIsImRhdGEiOnt9LCJyYW5kb20iOiJkOGFkMThmMDRmYzQ2ZmVhMmUwODQ3MGI0ZWE4MzZlZCJ9.SY1a_fB7Kn8uKNU2bDCeiW0JS-ENpjeRiwgxDp3TnsxTFHENMB2DRuoqsWETxl72U4QEFF7kRzqF0T-y2HritA and place them in:
+Download the pretrained model weights from (https://doi.org/10.5281/zenodo.22391344) and place them in:
 
 ```
 resources/pretrained/
