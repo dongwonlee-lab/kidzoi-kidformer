@@ -27,7 +27,7 @@ torch.cuda.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
 torch.set_float32_matmul_precision('high')
 
-num_epochs = 4
+num_epochs = 8
 max_lr = 3e-4
 min_lr = max_lr * 0.1
 warmup_steps = 1000
