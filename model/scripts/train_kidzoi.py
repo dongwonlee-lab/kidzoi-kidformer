@@ -32,7 +32,7 @@ torch.cuda.manual_seed_all(seed)
 torch.set_float32_matmul_precision('high')
 
 num_epochs = 4
-max_lr = 3e-3
+max_lr = 3e-4
 min_lr = max_lr * 0.1
 warmup_steps = 1000
 
@@ -158,7 +158,7 @@ def main():
         #Handle remaining gradients at end of epoch
         if len(train_loader) % accumulation_steps != 0:
             # Gradient clipping
-            norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.2)
             # Update learning rate
             lr =get_lr(step, warmup_steps, max_steps)
             for param_group in optimizer.param_groups:

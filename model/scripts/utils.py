@@ -1,3 +1,5 @@
+
+
 # some of the code here is adapted from Basenji repository  https://github.com/calico/basenji
 
 import numpy as np
@@ -68,6 +70,7 @@ def configure_optimizers(model, weight_decay, learning_rate, device):
     return optimizer
 
 
+
 class BorzoiFineTune(nn.Module):
     """Simple wrapper to finetune Borzoi on new tracks"""
     def __init__(self, pretrained_model, num_new_tracks=10):
@@ -104,11 +107,10 @@ class BorzoiFineTune(nn.Module):
 
 class GenomicDataset(Dataset):
     def __init__(self, bed_file, targets_file, genome_fasta, split='train',
-                 seq_len=524288, target_len=114688, bin_size=128,
+                 seq_len=196608, target_len=114688, bin_size=128,
                  rc_aug=False, shift_aug=False, shift_max=3):
         assert seq_len % bin_size == 0 and target_len % bin_size == 0
 
-        # targets_sum.txt defines column order: index 0 -> col 0 (Immune), ..., 9 -> col 9 (LOH)
         targets = pd.read_csv(targets_file, sep='\t', index_col=0).sort_index()
         self.bw_paths = targets['file'].tolist()
         self.identifiers = targets['identifier'].tolist()
@@ -129,13 +131,14 @@ class GenomicDataset(Dataset):
         self.shift_aug = shift_aug
         self.shift_max = shift_max
 
-        # lazily opened per worker process (pyfaidx/pyBigWig handles aren't fork-safe)
         self.genome = None
         self.bws = None
+        self.chrom_lens = None
 
     def _init_handles(self):
         if self.genome is None:
             self.genome = Fasta(self.genome_fasta, sequence_always_upper=True, one_based_attributes=False)
+            self.chrom_lens = {c: len(self.genome[c]) for c in self.genome.keys()}
         if self.bws is None:
             self.bws = [pyBigWig.open(p) for p in self.bw_paths]
 
@@ -153,7 +156,7 @@ class GenomicDataset(Dataset):
     def _clamped_window(self, chrom, center, length):
         """Return (fetch_start, fetch_end, left_pad, right_pad) for a `length`-bp
         window centered at `center`, clamped to chrom bounds."""
-        chrom_len = len(self.genome[chrom])
+        chrom_len = self.chrom_lens[chrom]
         new_start = center - length // 2
         new_end = new_start + length
         fetch_start = max(new_start, 0)
@@ -180,25 +183,16 @@ class GenomicDataset(Dataset):
             seq = 'N' * s_lpad + seq + 'N' * s_rpad
         one_hot = self._one_hot(seq)
 
-        # --- bigwig signal over the smaller, centered target_len window ---
+
         t_start, t_end, t_lpad, t_rpad = self._clamped_window(chrom, center, self.target_len)
 
         targets = np.zeros((self.n_bins, self.n_targets), dtype=np.float32)
         for i, bw in enumerate(self.bws):
-            if not (t_lpad or t_rpad):
-                vals = bw.stats(chrom, t_start, t_end, nBins=self.n_bins, type="sum", exact=True)
-                targets[:, i] = [v if v is not None else 0.0 for v in vals]
-            else:
-                # target window touches chrom edge: query only the valid sub-range at bin resolution
-                bin_offset = t_lpad // self.bin_size
-                n_valid_bins = (t_end - t_start) // self.bin_size
-                vals = bw.stats(chrom, t_start, t_start + n_valid_bins * self.bin_size,
-                                 nBins=n_valid_bins, type="sum", exact=True)
-                for j, v in enumerate(vals):
-                    targets[bin_offset + j, i] = v if v is not None else 0.0
+            v = np.zeros(self.target_len, dtype=np.float64)
+            v[t_lpad:t_lpad + (t_end - t_start)] = bw.values(chrom, t_start, t_end, numpy=True)
+            np.nan_to_num(v, copy=False)
+            targets[:, i] = v.reshape(self.n_bins, self.bin_size).sum(1)
 
-        # reverse complement augmentation: reverse sequence + complement bases,
-        # and reverse bin order in targets to keep them spatially aligned
         if self.rc_aug and np.random.rand() < 0.5:
             one_hot = one_hot[::-1, ::-1].copy()
             targets = targets[::-1].copy()
@@ -222,8 +216,6 @@ def poisson_loss(pred, target):
     return (pred - target * torch.log(pred)).mean()
 
 
-def clip_float(x, dtype=np.float16):
-    return np.clip(x, np.finfo(dtype).min, np.finfo(dtype).max)
 
 
 def initialize_output_h5(out_dir, sad_stats, snps, targets_length, targets_df, vcf_file):
@@ -364,6 +356,7 @@ class SNP:
             self.ref_allele,
             ",".join(self.alt_alleles),
         )
+
 
 
 

@@ -33,8 +33,6 @@ min_lr = max_lr * 0.1
 warmup_steps = 1000
 
 
-
-
 def main():
 
     parser = argparse.ArgumentParser()
@@ -150,7 +148,7 @@ def main():
         #Handle remaining gradients at end of epoch
         if len(train_loader) % accumulation_steps != 0:
             # Gradient clipping
-            norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.2)
             
             # Update learning rate
             lr =get_lr(step, warmup_steps, max_steps)
@@ -210,7 +208,8 @@ def main():
     
     print("Saving fine-tuned model...")
     torch.save(model.state_dict(), f"{model_name}.pth")
-           
+    
+        
 
 if __name__ == "__main__":
     main()
