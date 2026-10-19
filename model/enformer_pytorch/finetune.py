@@ -70,8 +70,8 @@ def get_enformer_embeddings(
     train_last_n_layers_only = None,
     enformer_kwargs: dict = {}
 ):
-    freeze_batchnorms_(model)
-
+    #freeze_batchnorms_(model)
+    
     if train_layernorms_only:
         assert not freeze, 'you set the intent to train the layernorms of the enformer, yet also indicated you wanted to freeze the entire model'
         freeze_all_but_layernorms_(model)
@@ -301,7 +301,7 @@ class ContextAttentionAdapterWrapper(nn.Module):
             Rearrange('b c ... 1 -> b ... c'),
             output_activation
         )
-
+    
     def forward(
         self,
         seq,
